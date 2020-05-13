@@ -19,12 +19,13 @@ async function run() {
     console.log(`##[add-matcher]${path.join(matchersPath, 'java.json')}`);
 
     const id = [core.getInput('server-id', {required: false})] || undefined;
+    const generateAllServerIds: boolean = core.getInput('generate-all-server-ids', {required: false}) == 'true' || false;
     const username =
       core.getInput('server-username', {required: false}) || undefined;
     const password =
       core.getInput('server-password', {required: false}) || undefined;
 
-    await auth.configAuthentication(id, username, password);
+    await auth.configAuthentication(id, username, password, generateAllServerIds);
   } catch (error) {
     core.setFailed(error.message);
   }

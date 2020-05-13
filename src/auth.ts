@@ -3,6 +3,7 @@ import * as os from 'os';
 import * as path from 'path';
 import * as core from '@actions/core';
 import * as io from '@actions/io';
+import * as parser from 'fast-xml-parser'
 
 export const M2_DIR = '.m2';
 export const SETTINGS_FILE = 'settings.xml';
@@ -11,13 +12,45 @@ export const DEFAULT_ID = 'github';
 export const DEFAULT_USERNAME = 'GITHUB_ACTOR';
 export const DEFAULT_PASSWORD = 'GITHUB_TOKEN';
 
+export const DEFAULT_REPOSITORY_ID_PREFIX = 'github';
+
+function extractIds(
+  resolvedIds: string[], 
+  repositories: any
+) {
+  if (repositories) {
+    return resolvedIds.concat([].concat(repositories).map((value: any) => value.id).filter(value => value.startsWith(DEFAULT_REPOSITORY_ID_PREFIX)));
+  }
+  return resolvedIds;
+}
+
+function resolveServerIds(
+  ids: string[], 
+  pomFile: string
+) {
+  let resolvedIds: string[] = [];
+  resolvedIds = resolvedIds.concat(ids)
+  let content = read(pomFile);
+  if (content == undefined) {
+    return resolvedIds;
+  }
+  const pom = parser.parse(content);
+  resolvedIds = extractIds(resolvedIds, pom.project.distributionManagement?.repository);
+  resolvedIds = extractIds(resolvedIds, pom?.project?.repositories?.repository);
+  resolvedIds = extractIds(resolvedIds, pom.project.pluginRepositories?.pluginRepository);
+  return [...new Set(resolvedIds)];
+}
+
 export async function configAuthentication(
   ids: string[] = [DEFAULT_ID],
   username = DEFAULT_USERNAME,
-  password = DEFAULT_PASSWORD
+  password = DEFAULT_PASSWORD,
+  generateAllServerIds: boolean = false,
+  pomFile = 'pom.xml'
 ) {
+  const resolvedIds: string[] = generateAllServerIds ? resolveServerIds(ids, pomFile) : ids
   console.log(
-    `creating ${SETTINGS_FILE} with server-ids: ${ids};`,
+    `creating ${SETTINGS_FILE} with server-ids: ${resolvedIds};`,
     `environment variables: username=\$${username} and password=\$${password}`
   );
   // when an alternate m2 location is specified use only that location (no .m2 directory)
@@ -28,7 +61,7 @@ export async function configAuthentication(
   );
   await io.mkdirP(directory);
   core.debug(`created directory ${directory}`);
-  await write(directory, generate(ids, username, password));
+  await write(directory, generate(resolvedIds, username, password));
 }
 
 function escapeXML(value: string) {
@@ -103,5 +136,17 @@ async function write(directory: string, settings: string) {
   return fs.writeFileSync(location, settings, {
     encoding: 'utf-8',
     flag: 'w'
+  });
+}
+
+function read(location: string): string | undefined {
+  if (!fs.existsSync(location)) {
+    console.error(`file '${location}' does not exist!`);
+    return undefined
+  } 
+
+  return fs.readFileSync(location, {
+    encoding: 'utf-8',
+    flag: 'r'
   });
 }

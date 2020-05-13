@@ -36,6 +36,10 @@ inputs:
   settings-path:
     description: 'Path to where the settings.xml file will be written. Default is ~/.m2.'
     required: false
+  generate-all-server-ids:
+    description: 'When true, generates one <server> section in settings.xml for each repository ID used in pom.xml.'
+    required: false
+    default: 'false'
 runs:
   using: 'node12'
   main: 'dist/index.js'
