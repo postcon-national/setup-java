@@ -1,6 +1,5 @@
 import io = require('@actions/io');
 import fs = require('fs');
-import os = require('os');
 import path = require('path');
 
 // make the os.homedir() call be local to the tests
@@ -38,7 +37,7 @@ describe('auth tests', () => {
     process.env[`INPUT_SETTINGS-PATH`] = altHome;
     await io.rmRF(altHome); // ensure it doesn't already exist
 
-    await auth.configAuthentication(id, username, password);
+    await auth.configAuthentication([id], username, password);
 
     expect(fs.existsSync(m2Dir)).toBe(false);
     expect(fs.existsSync(settingsFile)).toBe(false);
@@ -46,7 +45,7 @@ describe('auth tests', () => {
     expect(fs.existsSync(altHome)).toBe(true);
     expect(fs.existsSync(altSettingsFile)).toBe(true);
     expect(fs.readFileSync(altSettingsFile, 'utf-8')).toEqual(
-      auth.generate(id, username, password)
+      auth.generate([id], username, password)
     );
 
     delete process.env[`INPUT_SETTINGS-PATH`];
@@ -58,13 +57,42 @@ describe('auth tests', () => {
     const username = 'UNAME';
     const password = 'TOKEN';
 
-    await auth.configAuthentication(id, username, password);
+    await auth.configAuthentication([id], username, password);
 
     expect(fs.existsSync(m2Dir)).toBe(true);
     expect(fs.existsSync(settingsFile)).toBe(true);
     expect(fs.readFileSync(settingsFile, 'utf-8')).toEqual(
-      auth.generate(id, username, password)
+      auth.generate([id], username, password)
     );
+  }, 100000);
+  
+  it('creates settings.xml with username, password, and multiple ids', async () => {
+    const ids = ['id1', 'id2', 'id3'];
+    const username = 'UNAME';
+    const password = 'TOKEN';
+
+      let actual = auth.generate(ids, username, password);
+      expect(actual).toEqual(`
+  <settings>
+      <servers>
+        <server>
+          <id>id1</id>
+          <username>\${env.UNAME}</username>
+          <password>\${env.TOKEN}</password>
+        </server>
+        <server>
+          <id>id2</id>
+          <username>\${env.UNAME}</username>
+          <password>\${env.TOKEN}</password>
+        </server>
+        <server>
+          <id>id3</id>
+          <username>\${env.UNAME}</username>
+          <password>\${env.TOKEN}</password>
+        </server>
+      </servers>
+  </settings>
+  `);
   }, 100000);
 
   it('overwrites existing settings.xml files', async () => {
@@ -77,22 +105,22 @@ describe('auth tests', () => {
     expect(fs.existsSync(m2Dir)).toBe(true);
     expect(fs.existsSync(settingsFile)).toBe(true);
 
-    await auth.configAuthentication(id, username, password);
+    await auth.configAuthentication([id], username, password);
 
     expect(fs.existsSync(m2Dir)).toBe(true);
     expect(fs.existsSync(settingsFile)).toBe(true);
     expect(fs.readFileSync(settingsFile, 'utf-8')).toEqual(
-      auth.generate(id, username, password)
+      auth.generate([id], username, password)
     );
   }, 100000);
 
   it('does not create settings.xml without required parameters', async () => {
-    await auth.configAuthentication('FOO');
+    await auth.configAuthentication(['FOO']);
 
     expect(fs.existsSync(m2Dir)).toBe(true);
     expect(fs.existsSync(settingsFile)).toBe(true);
     expect(fs.readFileSync(settingsFile, 'utf-8')).toEqual(
-      auth.generate('FOO', auth.DEFAULT_USERNAME, auth.DEFAULT_PASSWORD)
+      auth.generate(['FOO'], auth.DEFAULT_USERNAME, auth.DEFAULT_PASSWORD)
     );
 
     await auth.configAuthentication(undefined, 'BAR', undefined);
@@ -100,7 +128,7 @@ describe('auth tests', () => {
     expect(fs.existsSync(m2Dir)).toBe(true);
     expect(fs.existsSync(settingsFile)).toBe(true);
     expect(fs.readFileSync(settingsFile, 'utf-8')).toEqual(
-      auth.generate(auth.DEFAULT_ID, 'BAR', auth.DEFAULT_PASSWORD)
+      auth.generate([auth.DEFAULT_ID], 'BAR', auth.DEFAULT_PASSWORD)
     );
 
     await auth.configAuthentication(undefined, undefined, 'BAZ');
@@ -108,7 +136,7 @@ describe('auth tests', () => {
     expect(fs.existsSync(m2Dir)).toBe(true);
     expect(fs.existsSync(settingsFile)).toBe(true);
     expect(fs.readFileSync(settingsFile, 'utf-8')).toEqual(
-      auth.generate(auth.DEFAULT_ID, auth.DEFAULT_USERNAME, 'BAZ')
+      auth.generate([auth.DEFAULT_ID], auth.DEFAULT_USERNAME, 'BAZ')
     );
 
     await auth.configAuthentication();
@@ -116,11 +144,7 @@ describe('auth tests', () => {
     expect(fs.existsSync(m2Dir)).toBe(true);
     expect(fs.existsSync(settingsFile)).toBe(true);
     expect(fs.readFileSync(settingsFile, 'utf-8')).toEqual(
-      auth.generate(
-        auth.DEFAULT_ID,
-        auth.DEFAULT_USERNAME,
-        auth.DEFAULT_PASSWORD
-      )
+      auth.generate([auth.DEFAULT_ID], auth.DEFAULT_USERNAME, auth.DEFAULT_PASSWORD)
     );
   }, 100000);
 
@@ -129,7 +153,7 @@ describe('auth tests', () => {
     const username = 'USER';
     const password = '&<>"\'\'"><&';
 
-    expect(auth.generate(id, username, password)).toEqual(`
+    expect(auth.generate([id], username, password)).toEqual(`
   <settings>
       <servers>
         <server>

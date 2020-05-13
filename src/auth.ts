@@ -12,12 +12,12 @@ export const DEFAULT_USERNAME = 'GITHUB_ACTOR';
 export const DEFAULT_PASSWORD = 'GITHUB_TOKEN';
 
 export async function configAuthentication(
-  id = DEFAULT_ID,
+  ids: string[] = [DEFAULT_ID],
   username = DEFAULT_USERNAME,
   password = DEFAULT_PASSWORD
 ) {
   console.log(
-    `creating ${SETTINGS_FILE} with server-id: ${id};`,
+    `creating ${SETTINGS_FILE} with server-ids: ${ids};`,
     `environment variables: username=\$${username} and password=\$${password}`
   );
   // when an alternate m2 location is specified use only that location (no .m2 directory)
@@ -28,7 +28,7 @@ export async function configAuthentication(
   );
   await io.mkdirP(directory);
   core.debug(`created directory ${directory}`);
-  await write(directory, generate(id, username, password));
+  await write(directory, generate(ids, username, password));
 }
 
 function escapeXML(value: string) {
@@ -42,18 +42,51 @@ function escapeXML(value: string) {
 
 // only exported for testing purposes
 export function generate(
-  id = DEFAULT_ID,
+  ids = [DEFAULT_ID],
   username = DEFAULT_USERNAME,
   password = DEFAULT_PASSWORD
 ) {
+  let content = generatePrefix();
+  content += generateServers(ids, username, password);
+  content += generateSuffix()
+  return content
+}
+
+function generatePrefix(
+) {
   return `
   <settings>
-      <servers>
+      <servers>`;
+}
+
+function generateServers(
+  ids: string[], 
+  username: string, 
+  password: string
+) {
+  let content = '';
+  for (let id of ids) {
+    content += generateServer(id, username, password);
+  }
+  return content;
+}
+
+function generateServer(
+  id: string, 
+  username: string, 
+  password: string
+) {
+  return `
         <server>
           <id>${escapeXML(id)}</id>
           <username>\${env.${escapeXML(username)}}</username>
           <password>\${env.${escapeXML(password)}}</password>
-        </server>
+        </server>`;
+}
+
+function generateSuffix(
+) {
+  return `
       </servers>
   </settings>
   `;

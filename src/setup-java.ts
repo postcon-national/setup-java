@@ -18,7 +18,7 @@ async function run() {
     const matchersPath = path.join(__dirname, '..', '.github');
     console.log(`##[add-matcher]${path.join(matchersPath, 'java.json')}`);
 
-    const id = core.getInput('server-id', {required: false}) || undefined;
+    const id = [core.getInput('server-id', {required: false})] || undefined;
     const username =
       core.getInput('server-username', {required: false}) || undefined;
     const password =
