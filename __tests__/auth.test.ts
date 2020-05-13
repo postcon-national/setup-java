@@ -37,7 +37,7 @@ describe('auth tests', () => {
     process.env[`INPUT_SETTINGS-PATH`] = altHome;
     await io.rmRF(altHome); // ensure it doesn't already exist
 
-    await auth.configAuthentication([id], username, password);
+    await auth.configAuthentication(id, username, password);
 
     expect(fs.existsSync(m2Dir)).toBe(false);
     expect(fs.existsSync(settingsFile)).toBe(false);
@@ -57,7 +57,7 @@ describe('auth tests', () => {
     const username = 'UNAME';
     const password = 'TOKEN';
 
-    await auth.configAuthentication([id], username, password);
+    await auth.configAuthentication(id, username, password);
 
     expect(fs.existsSync(m2Dir)).toBe(true);
     expect(fs.existsSync(settingsFile)).toBe(true);
@@ -72,7 +72,7 @@ describe('auth tests', () => {
     const password = 'TOKEN';
 
     await auth.configAuthentication(
-      [id],
+      id,
       username,
       password,
       true,
@@ -148,7 +148,7 @@ describe('auth tests', () => {
     expect(fs.existsSync(m2Dir)).toBe(true);
     expect(fs.existsSync(settingsFile)).toBe(true);
 
-    await auth.configAuthentication([id], username, password);
+    await auth.configAuthentication(id, username, password);
 
     expect(fs.existsSync(m2Dir)).toBe(true);
     expect(fs.existsSync(settingsFile)).toBe(true);
@@ -158,7 +158,7 @@ describe('auth tests', () => {
   }, 100000);
 
   it('does not create settings.xml without required parameters', async () => {
-    await auth.configAuthentication(['FOO']);
+    await auth.configAuthentication('FOO');
 
     expect(fs.existsSync(m2Dir)).toBe(true);
     expect(fs.existsSync(settingsFile)).toBe(true);

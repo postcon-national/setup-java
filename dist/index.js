@@ -3527,10 +3527,10 @@ function extractIds(resolvedIds, repositories) {
     }
     return resolvedIds;
 }
-function resolveServerIds(ids, pomFile) {
+function resolveServerIds(id, pomFile) {
     var _a, _b, _c, _d, _e;
     let resolvedIds = [];
-    resolvedIds = resolvedIds.concat(ids);
+    resolvedIds = resolvedIds.concat(id);
     let content = read(pomFile);
     if (content == undefined) {
         return resolvedIds;
@@ -3541,11 +3541,11 @@ function resolveServerIds(ids, pomFile) {
     resolvedIds = extractIds(resolvedIds, (_e = pom.project.pluginRepositories) === null || _e === void 0 ? void 0 : _e.pluginRepository);
     return [...new Set(resolvedIds)];
 }
-function configAuthentication(ids = [exports.DEFAULT_ID], username = exports.DEFAULT_USERNAME, password = exports.DEFAULT_PASSWORD, generateAllServerIds = false, pomFile = 'pom.xml') {
+function configAuthentication(id = exports.DEFAULT_ID, username = exports.DEFAULT_USERNAME, password = exports.DEFAULT_PASSWORD, generateAllServerIds = false, pomFile = 'pom.xml') {
     return __awaiter(this, void 0, void 0, function* () {
         const resolvedIds = generateAllServerIds
-            ? resolveServerIds(ids, pomFile)
-            : ids;
+            ? resolveServerIds(id, pomFile)
+            : [id];
         console.log(`creating ${exports.SETTINGS_FILE} with server-ids: ${resolvedIds};`, `environment variables: username=\$${username} and password=\$${password}`);
         // when an alternate m2 location is specified use only that location (no .m2 directory)
         // otherwise use the home/.m2/ path
@@ -5436,7 +5436,7 @@ function run() {
             yield installer.getJava(version, arch, jdkFile, javaPackage);
             const matchersPath = path.join(__dirname, '..', '.github');
             console.log(`##[add-matcher]${path.join(matchersPath, 'java.json')}`);
-            const id = [core.getInput('server-id', { required: false })] || false;
+            const id = core.getInput('server-id', { required: false }) || undefined;
             const generateAllServerIds = core.getInput('generate-all-server-ids', { required: false }) == 'true' ||
                 false;
             const username = core.getInput('server-username', { required: false }) || undefined;

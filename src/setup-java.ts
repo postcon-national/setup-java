@@ -18,7 +18,7 @@ async function run() {
     const matchersPath = path.join(__dirname, '..', '.github');
     console.log(`##[add-matcher]${path.join(matchersPath, 'java.json')}`);
 
-    const id = [core.getInput('server-id', {required: false})] || undefined;
+    const id = core.getInput('server-id', {required: false}) || undefined;
     const generateAllServerIds: boolean =
       core.getInput('generate-all-server-ids', {required: false}) == 'true' ||
       false;

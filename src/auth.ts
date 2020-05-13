@@ -26,9 +26,9 @@ function extractIds(resolvedIds: string[], repositories: any) {
   return resolvedIds;
 }
 
-function resolveServerIds(ids: string[], pomFile: string) {
+function resolveServerIds(id: string, pomFile: string) {
   let resolvedIds: string[] = [];
-  resolvedIds = resolvedIds.concat(ids);
+  resolvedIds = resolvedIds.concat(id);
   let content = read(pomFile);
   if (content == undefined) {
     return resolvedIds;
@@ -47,15 +47,15 @@ function resolveServerIds(ids: string[], pomFile: string) {
 }
 
 export async function configAuthentication(
-  ids: string[] = [DEFAULT_ID],
+  id: string = DEFAULT_ID,
   username = DEFAULT_USERNAME,
   password = DEFAULT_PASSWORD,
   generateAllServerIds: boolean = false,
   pomFile = 'pom.xml'
 ) {
   const resolvedIds: string[] = generateAllServerIds
-    ? resolveServerIds(ids, pomFile)
-    : ids;
+    ? resolveServerIds(id, pomFile)
+    : [id];
   console.log(
     `creating ${SETTINGS_FILE} with server-ids: ${resolvedIds};`,
     `environment variables: username=\$${username} and password=\$${password}`
