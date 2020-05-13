@@ -65,13 +65,19 @@ describe('auth tests', () => {
       auth.generate([id], username, password)
     );
   }, 100000);
-  
+
   it('extracts repository ids from pom.xml', async () => {
     const id = 'packages';
     const username = 'UNAME';
     const password = 'TOKEN';
 
-    await auth.configAuthentication([id], username, password, true, path.join('__tests__', 'pom._xml'));
+    await auth.configAuthentication(
+      [id],
+      username,
+      password,
+      true,
+      path.join('__tests__', 'pom._xml')
+    );
 
     expect(fs.existsSync(m2Dir)).toBe(true);
     expect(fs.existsSync(settingsFile)).toBe(true);
@@ -102,14 +108,14 @@ describe('auth tests', () => {
   </settings>
   `);
   }, 100000);
-  
+
   it('creates settings.xml with username, password, and multiple ids', async () => {
     const ids = ['id1', 'id2', 'id3'];
     const username = 'UNAME';
     const password = 'TOKEN';
 
-      let actual = auth.generate(ids, username, password);
-      expect(actual).toEqual(`
+    let actual = auth.generate(ids, username, password);
+    expect(actual).toEqual(`
   <settings>
       <servers>
         <server>
@@ -181,7 +187,11 @@ describe('auth tests', () => {
     expect(fs.existsSync(m2Dir)).toBe(true);
     expect(fs.existsSync(settingsFile)).toBe(true);
     expect(fs.readFileSync(settingsFile, 'utf-8')).toEqual(
-      auth.generate([auth.DEFAULT_ID], auth.DEFAULT_USERNAME, auth.DEFAULT_PASSWORD)
+      auth.generate(
+        [auth.DEFAULT_ID],
+        auth.DEFAULT_USERNAME,
+        auth.DEFAULT_PASSWORD
+      )
     );
   }, 100000);
 
