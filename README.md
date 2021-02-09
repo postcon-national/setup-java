@@ -1,3 +1,9 @@
+2021-02-09, Dirk Henneberger, Postcon AppMgmt: 
+Archived as considered to be not used anymore. 
+Potentially useful content.
+Project to be re-considered for deletion in 12 months.
+
+
 # setup-java
 
 <p align="left">
